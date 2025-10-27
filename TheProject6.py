@@ -4,6 +4,48 @@ from transformers import pipeline
 import os
 from openai import OpenAI
 
+import sqlite3
+import pandas as pd
+
+DATABASE_FILE = "feedback.db"
+
+def interpret_reviews_with_pandas():
+    """Connects to the DB, loads data into a DataFrame, and performs basic interpretation."""
+    
+    # 1. Use Pandas' built-in function to read the SQL table directly
+    # This is often cleaner than using sqlite3 manually
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        df = pd.read_sql_query("SELECT id, review_text FROM reviews;", conn)
+        conn.close()
+        
+        print(f"DataFrame loaded with {len(df)} rows and {len(df.columns)} columns.")
+        
+        ## --- Basic Interpretation / Analysis ---
+        
+        # 2. Example: Check for reviews that mention 'battery'
+        battery_mentions = df[df['review_text'].str.contains('battery', case=False, na=False)]
+        
+        print("\n--- Interpretation: Reviews mentioning 'Battery' ---")
+        print(f"Number of 'battery' mentions: {len(battery_mentions)}")
+        print("Example review about the battery:")
+        print(battery_mentions['review_text'].iloc[0][:150] + '...')
+        
+        # 3. Example: Check for reviews that mention 'M5 model' or 'M5 version' (a model upgrade)
+        m5_mentions = df[df['review_text'].str.contains('M5 (model|version)', case=False, na=False)]
+        
+        print("\n--- Interpretation: Reviews mentioning 'M5' Model Upgrade ---")
+        print(f"Number of 'M5' mentions: {len(m5_mentions)}")
+        
+        return df
+        
+    except Exception as e:
+        print(f"An error occurred during interpretation: {e}")
+        return pd.DataFrame()
+
+# Run the interpretation function
+reviews_df = interpret_reviews_with_pandas()
+
 # The client automatically looks for the OPENAI_API_KEY environment variable
 
 # --- Load NLP and Sentiment Models Once ---
@@ -162,9 +204,3 @@ summary = aspects_df.groupby(['Aspect_Category', 'aspect_sentiment_tag']).size()
 
 print(summary)
 
-import matplotlib.pyplot as plt
-from collections import Counter
-from wordcloud import WordCloud
-import seaborn as sns
-# Set a consistent style for plots
-sns.set_style("whitegrid")
