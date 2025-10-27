@@ -98,15 +98,8 @@ def extract_aspects(text: str) -> list:
 # --- 2. Define Aspect Sentiment Tagging Function ---
 
 def tag_aspect_sentiment(review_text: str, aspect: str) -> dict:
-    """
-    Determines the sentiment specifically for a given aspect within the context of the review.
-    We use the pre-trained Hugging Face model for reliable sentiment scoring.
-    """
-    # Create the text pair needed for context-aware sentiment
-    # Although a simple pipeline is used here, the model is powerful enough to handle the context.
-    # We pass the full review text for context.
+   
     
-    # Run the model on the full review text
     result = sentiment_pipeline(review_text, truncation=True)[0]
 
     label_map = {
@@ -203,4 +196,5 @@ print("="*50)
 summary = aspects_df.groupby(['Aspect_Category', 'aspect_sentiment_tag']).size().reset_index(name='Count')
 
 print(summary)
+
 
